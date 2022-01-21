@@ -1,10 +1,11 @@
 import { Component } from "react";
+import { connect } from "react-redux";
 import Square from "./components/square.component/square.component";
 
 class Board extends Component {
   
   render() {
-    const {squares, onClick, xColor, oColor, rows, columns} = this.props
+    const {squares, onClick, xColor, oColor, rows, coloums} = this.props
 
     function renderSquare(rowIndex, i){
 
@@ -14,10 +15,6 @@ class Board extends Component {
            key={rowIndex, i}
            value={squares[rowIndex][i]}
            onClick={() => onClick(rowIndex, i)}
-           xColor={xColor}
-           oColor={oColor}
-           rows={rows}
-           columns={columns}
          />
        );
     }
@@ -32,7 +29,7 @@ class Board extends Component {
               className="board-row-div" 
               key={rowIndex} 
               style={{
-                gridTemplateColumns : `repeat(${columns}, 1fr)`, 
+                gridTemplateColumns : `repeat(${coloums}, 1fr)`, 
                 gridTemplateRows: `repeat(${rows}, 1fr)`
               }}
             >
@@ -47,8 +44,17 @@ class Board extends Component {
     );
   }
 }
+
+const mapStateToProps = (state) =>{
+  return {
+    rows: state.game_Class.rows,
+    coloums: state.game_Class.coloums,
+    xColor: state.game_Class.xColor,
+    oColor: state.game_Class.oColor,
+  }
+}
  
-export default Board;
+export default connect(mapStateToProps)(Board);
 
 
 

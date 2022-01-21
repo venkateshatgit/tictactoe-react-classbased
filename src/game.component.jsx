@@ -5,48 +5,46 @@ import MiddleDivPanel from "./components/middle.component/middle-div-panel";
 import Reset from "./components/reset.component/reset.component";
 import WhoIsNext from "./components/who-is-next.component/who-is-next.component";
 import { Component } from "react";
+import { connect } from "react-redux";
+import {onChangeColoum, onChangeRow, onChangeXColor, onChangeOColor} from './redux/gameClassSlice'
+
 
 class Game extends Component {
 
   constructor(props) {
     super(props);
     this.state = {
-      rows: 3,
-      coloums: 3,
-      matrix: Array.from(Array(3), () => new Array(3).fill(null)),
+      matrix: Array.from(Array(this.props.rows), () => new Array(this.props.coloums).fill(null)),
       isXNext: true,
       winner: "",
       play: true,
-      history: [Array.from(Array(3), () => new Array(3).fill(null))],
+      history: [Array.from(Array(this.props.rows), () => new Array(this.props.coloums).fill(null))],
       stepNumber: 0,
       matMove: 0,
       winnerRatio: 0,
-      xColor: '#00CCFF',
-      oColor: '#00FF61'
     };
   }
 
   componentDidUpdate (prevProps, prevState){
-    console.log("PrevState", prevState)
-    console.log("ThisState", this.state.rows)
 
-    if(this.state.rows !== prevState.rows){
+    if(this.props.rows !== prevProps.rows){
       this.setState({
-        matrix: Array.from(Array(this.state.rows), () => new Array(this.state.coloums).fill(null)),
-        history: [Array.from(Array(this.state.rows), () => new Array(this.state.coloums).fill(null))],
+        matrix: Array.from(Array(this.props.rows), () => new Array(this.props.coloums).fill(null)),
+        history: [Array.from(Array(this.props.rows), () => new Array(this.props.coloums).fill(null))],
         winner: "",
         play: true,
+        matMove: 0,
         isXNext: true
       })
-
     }
 
-    if(this.state.coloums !== prevState.coloums){
+    if(this.props.coloums !== prevProps.coloums){
       this.setState({
-        matrix: Array.from(Array(this.state.rows), () => new Array(this.state.coloums).fill(null)),
-        history: [Array.from(Array(this.state.rows), () => new Array(this.state.coloums).fill(null))],
+        matrix: Array.from(Array(this.props.rows), () => new Array(this.props.coloums).fill(null)),
+        history: [Array.from(Array(this.props.rows), () => new Array(this.props.coloums).fill(null))],
         winner: "",
         play: true,
+        matMove: 0,
         isXNext: true
       })
 
@@ -54,26 +52,27 @@ class Game extends Component {
 
     if(this.state.winnerRatio !== prevState.winnerRatio){
       this.setState({
-        matrix: Array.from(Array(this.state.rows), () => new Array(this.state.coloums).fill(null)),
-        history: [Array.from(Array(this.state.rows), () => new Array(this.state.coloums).fill(null))],
+        matrix: Array.from(Array(this.props.rows), () => new Array(this.props.coloums).fill(null)),
+        history: [Array.from(Array(this.props.rows), () => new Array(this.props.coloums).fill(null))],
         winner: "",
         play: true,
+        matMove: 0,
         isXNext: true
       })
     }
 
   }
 
+  
+
 
   render() { 
 
-    console.log(this.state)
+    const {matrix, isXNext, winner,
+    play, history, stepNumber, matMove, winnerRatio} = this.state
 
-    const {
-      rows, coloums, matrix, 
-      isXNext, winner, play, history, stepNumber,
-      matMove, winnerRatio, xColor, oColor
-    } = this.state
+    const {rows, coloums, xColor, oColor, setStateColoum, setStateRow, setStateXColor, setStateOColor} = this.props
+
 
     
     const horizontalCheck = (rowIndex, colIndex) =>{
@@ -128,7 +127,6 @@ class Game extends Component {
         r=rowIndex-colIndex;
       }
 
-      console.log("In check diagonal", r, c)
 
       for(let i=r, j=c; i<rows && j<coloums; ++i, ++j){
         let check = 0;
@@ -182,8 +180,6 @@ class Game extends Component {
       // console.log("Up", up, "Down", down);
       if(up+down+1 >= winnerRatio)
         return true;
-
-      console.log("Up", up)
       
       return false;
     }
@@ -208,7 +204,6 @@ class Game extends Component {
       const diagonalTB = diagonalTopToBottomCheck(rowIndex, colIndex);
       const diagonalBT = diagonalBottomToTopCheck(rowIndex, colIndex);
 
-      console.log( rowIndex, colIndex)
 
       checkWinner(row, col, diagonalTB, diagonalBT, check)
     }
@@ -248,23 +243,26 @@ class Game extends Component {
       }
 
       //diagonal check from 0,0 to n,n
-      if(rowIndex===colIndex){
-        for(let i=0, j=0; i<rows && j<coloums; ++i, ++j){
+      if(rows===coloums){
+        if(rowIndex===colIndex){
+          for(let i=0, j=0; i<rows && j<coloums; ++i, ++j){
+            if(matrix[i][j]!==check)
+              break;
+            if(i==rows-1 && j==coloums-1)
+              diagonal = true;
+          }
+        }
+  
+        //diagonal check from n,0 to 0,n
+        for(let i=rows-1, j=0;  i>=0 && j<coloums; --i, ++j){
+  
           if(matrix[i][j]!==check)
             break;
-          if(i==rows-1 && j==coloums-1)
+          if(i==0 && j==rows-1)
             diagonal = true;
         }
       }
-
-      //diagonal check from n,0 to 0,n
-      for(let i=rows-1, j=0;  i>=0 && j<coloums; --i, ++j){
-
-        if(matrix[i][j]!==check)
-          break;
-        if(i==0 && j==rows-1)
-          diagonal = true;
-      }
+      
 
 
       // console.log(row, col, diagonal, check)
@@ -286,20 +284,21 @@ class Game extends Component {
         
 
         if(e.target.name === "row"){
-          this.setState({
-            rows : Number(change)
-          })
+          // this.setState({
+          //   rows : Number(change)
+          // })
 
-          console.log("row", Number(change), this.state.rows)
+          setStateRow(Number(change));
+
         }
 
         else{
-          this.setState({
-            coloums: Number(change)
-          })
-          console.log("column", Number(change), this.state.coloums)
+          // this.setState({
+          //   coloums: Number(change)
+          // })
+
+          setStateColoum(Number(change))
         }
-        console.log(history)
         // this.setState({
         //   matrix: Array.from(Array(rows), () => new Array(coloums).fill(null)),
         //   history: [Array.from(Array(rows), () => new Array(coloums).fill(null))],
@@ -332,7 +331,51 @@ class Game extends Component {
 
 
 
+    const checkWinnerRatio = (e) => {
+
+
+      if((e<3 || e>rows || e>coloums) && play){
+        console.log(e)
+        alert("Invalid Winner Ratio !!. Winner Ratio must be less than rows and coloumns and also greater then equal to 3.")
+        this.setState({
+          play: false,
+        })
+      }
+      else if(e>=3 && e<=rows && e<=coloums){
+        this.setState({
+          winnerRatio: e,
+          play: true
+        })
+      }
+
+    }
     //assigning square required value and deleting history
+
+    const predictWinner = () => {
+      let nullRow, nullColoum;
+
+      for(let i=0; i<rows; ++i){
+        for(let j=0; j<coloums; ++j){
+          if(matrix[i][j]===null){
+            nullRow = i;
+            nullColoum = j;
+          }
+
+        }
+      }
+
+      console.log("Checking", nullRow, nullColoum)
+
+      if(matMove%2!==0){
+        matrix[nullRow][nullColoum]="X"
+      }
+      else
+        matrix[nullRow][nullColoum]="O"
+
+      calculateWinner(nullRow, nullColoum)
+      matrix[nullRow][nullColoum]=""
+    }
+
     const handleClick = (rowIndex, i) =>{
 
         if(matMove < history.length){
@@ -342,8 +385,6 @@ class Game extends Component {
 
           matrixSetup()
         }
-
-        
 
         if(play && !matrix[rowIndex][i]){
           if(isXNext){
@@ -364,11 +405,17 @@ class Game extends Component {
 
           matrixSetup()
 
+          console.log("prev MatMove", matMove);
           this.setState({
             matMove: matMove + 1,
             stepNumber: history.length
           })
           
+        }
+
+        if(matMove+2 === (rows*coloums)){
+          console.log("Predicting at", matMove)
+          predictWinner();
         }
 
     }
@@ -415,14 +462,12 @@ class Game extends Component {
     const handleColorChange = e =>{
       
       let result;
-      if(e.target.name==="x")
-        result = 'xColor'
-      else
-        result = 'oColor'
-
-      this.setState({
-        result: e.target.value
-      })
+      if(e.target.name==="x"){
+        setStateXColor(e.target.value)
+      }
+      else{
+        setStateOColor(e.target.value)
+      }
     }
 
     return (
@@ -496,9 +541,8 @@ class Game extends Component {
                   label={"Winner Ratio : "}
                   type={"number"}
                   onChange = {
-                    e => this.setState({
-                      winnerRatio: Number(e.target.value)
-                    })}
+                    e => checkWinnerRatio(Number(e.target.value))
+                  }
                   className={"mat-inputs"}
 
               />
@@ -514,10 +558,6 @@ class Game extends Component {
             matrix={matrix}
             handleClick={handleClick}
             isXNext={isXNext} 
-            xColor={xColor} 
-            oColor={oColor}
-            row={rows}
-            coloums={coloums}
           />
 
           <RightDivPanel  moves ={moves}/>
@@ -529,8 +569,31 @@ class Game extends Component {
 
   }
 }
- 
-export default Game;
+
+const mapStateToProps = (state) => {
+  return {
+    rows: state.game_Class.rows,
+    coloums: state.game_Class.coloums,
+    xColor: state.game_Class.xColor,
+    oColor: state.game_Class.oColor,
+  }
+  
+}
+
+const mapDispatchToProps = (dispatch) => {
+  return {
+    // dispatching plain actions
+      setStateRow: (x) => dispatch(onChangeRow(x)),
+      setStateColoum: (x) => dispatch(onChangeColoum(x)),
+      setStateXColor: (x) => dispatch(onChangeXColor(x)),
+      setStateOColor: (x) => dispatch(onChangeOColor(x)),
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(Game);
+
+
+// export default Game;
 
 // // function Game() {
 // //     const [rows, setRows] = useState(3)

@@ -1,4 +1,5 @@
 import { Component } from "react";
+import { connect } from "react-redux";
 
 class Square extends Component {
   render() { 
@@ -15,8 +16,17 @@ class Square extends Component {
     );
   }
 }
+
+const mapStateToProps = (state) => {
+  return {
+    rows: state.game_Class.rows,
+    coloums: state.game_Class.coloums,
+    xColor: state.game_Class.xColor,
+    oColor: state.game_Class.oColor,
+  }
+}
  
-export default Square;
+export default connect(mapStateToProps) (Square);
 
 // function Square({value, onClick, xColor, oColor, rows, columns}) {
 //     return (
