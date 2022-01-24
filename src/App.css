@@ -101,8 +101,8 @@ ol, ul {
 .game {
   display: flex;
   flex-direction: row;
-  background-color: aqua;
-  height: 80vh;
+  justify-content: center;
+  height: 85vh;
 }
 
 
@@ -119,35 +119,9 @@ ol, ul {
   text-align: left;
 }
 
-.color{
-  display: flex;
-  flex-direction: row;
-}
 
-.color label{
-  font-weight: 700;
-}
 
-.color input{
-  border-radius: 5px;
-  margin: 10px 20px;
-}
 
-.mat-inputs{
-  display: flex;
-  flex-direction: column;
-  margin: 20px 0;
-  font-size: 1rem;
-  font-weight: 700;
-  color: #fff;
-}
-
-.mat-inputs input{
-  width: 120px;
-  padding: 5px;
-  border-radius: 10px;
-  margin: 5px 0;
-}
 
 .reset-btn{
   width: 60px;
@@ -161,7 +135,7 @@ ol, ul {
 }
 
 .matrix{
-  width: 50%;
+  width: 70%;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -180,6 +154,7 @@ ol, ul {
 
 .right-div{
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   background-color: #374549;

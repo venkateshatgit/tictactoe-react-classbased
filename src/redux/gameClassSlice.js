@@ -7,6 +7,8 @@ export const gameClassSlice = createSlice({
         coloums: 3,
         xColor: '#00CCFF',
         oColor: '#00FF61',
+        winnerRatio: 0,
+        history: [],
     },
     reducers:{
         
@@ -18,16 +20,39 @@ export const gameClassSlice = createSlice({
             state.coloums = action.payload
         },
 
+        onChangeWinnerRatio: (state, action) => {
+            state.winnerRatio = action.payload
+        },
+
         onChangeXColor: (state, action) => {
             state.xColor = action.payload
         },
 
         onChangeOColor: (state, action) => {
             state.oColor = action.payload
+        },
+
+        onChangeHistory: (state, action) => {
+            while(state.history.length){
+                state.history.pop()
+            }
+
+            state.history.push(action.payload)
+        },
+
+        onChangeHistoryPushBack: (state, action) => {
+            state.history.push(action.payload)
         }
 
     }
 })
 
-export const {onChangeRow, onChangeColoum, onChangeOColor, onChangeXColor} = gameClassSlice.actions
+export const {onChangeRow, 
+    onChangeColoum, 
+    onChangeOColor, 
+    onChangeXColor, 
+    onChangeWinnerRatio, 
+    onChangeHistory, 
+    onChangeHistoryPushBack,  
+} = gameClassSlice.actions
 export default gameClassSlice.reducer

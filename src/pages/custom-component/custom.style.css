@@ -1,0 +1,51 @@
+.custom-page{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.custom-inputs-div{
+    width: 400px;
+    padding: 20px 20px 40px 20px;
+    background-color: rgb(136, 52, 132);
+    border: 1px solid #fff;
+}
+
+.color{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.color label{
+    font-weight: 700;
+}
+
+.color input{
+    border-radius: 5px;
+    margin: 10px 20px;
+}
+
+.mat-inputs{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 20px 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #fff;
+    text-align: left;
+}
+  
+.mat-inputs input{
+    width: 120px;
+    padding: 5px;
+    border-radius: 10px;
+    margin: 5px 0;
+}
+
+.play-btn{
+    margin: 20px;
+}
