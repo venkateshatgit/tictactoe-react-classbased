@@ -9,6 +9,9 @@ export const gameClassSlice = createSlice({
         oColor: '#00FF61',
         winnerRatio: 0,
         history: [],
+        matrix: Array.from(Array(3), () => new Array(3).fill(null)),
+        checkRow: 0,
+        checkColoum: 0,
     },
     reducers:{
         
@@ -42,7 +45,23 @@ export const gameClassSlice = createSlice({
 
         onChangeHistoryPushBack: (state, action) => {
             state.history.push(action.payload)
-        }
+        },
+
+        onChangeMatrix: (state) => {
+            state.matrix = Array.from(Array(state.rows), () => new Array(state.coloums).fill(null))
+        },
+
+        onChangeMatrixValue: (state, action) => {
+            state.matrix = action.payload
+        },
+
+        onChangeCheckRow: (state, action) =>{
+            state.checkRow = action.payload
+        },
+
+        onChangeCheckColoum: (state, action) =>{
+            state.checkColoum = action.payload
+        },
 
     }
 })
@@ -54,5 +73,9 @@ export const {onChangeRow,
     onChangeWinnerRatio, 
     onChangeHistory, 
     onChangeHistoryPushBack,  
+    onChangeMatrix,
+    onChangeMatrixValue,
+    onChangeCheckRow, 
+    onChangeCheckColoum,   
 } = gameClassSlice.actions
 export default gameClassSlice.reducer

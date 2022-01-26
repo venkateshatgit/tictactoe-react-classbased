@@ -3,8 +3,10 @@ import Reset from "./components/reset.component/reset.component";
 import WhoIsNext from "./components/who-is-next.component/who-is-next.component";
 import { Component } from "react";
 import { connect } from "react-redux";
-import {onChangeColoum, onChangeRow, onChangeXColor, onChangeOColor, onChangeWinnerRatio, onChangeHistory, onChangeHistoryPushBack } from './redux/gameClassSlice'
+import {onChangeColoum, onChangeRow, onChangeXColor, onChangeOColor, onChangeWinnerRatio, onChangeHistory, 
+  onChangeHistoryPushBack, onChangeMatrix, onChangeMatrixValue, onChangeCheckColoum, onChangeCheckRow, } from './redux/gameClassSlice'
 import Navigate from "./components/nav-component/navigate.component";
+import Header from "./header";
 
 
 class Game extends Component {
@@ -13,16 +15,19 @@ class Game extends Component {
     super(props);
 
     this.state = {
-      matrix: Array.from(Array(this.props.rows), () => new Array(this.props.coloums).fill(null)),
       isXNext: true,
       winner: "",
       play: true,
       stepNumber: 0,
       matMove: 0,
+      rowsState: this.props.rows,
+      coloumsState: this.props.coloums, 
     };
 
+    this.props.setStateMatrix(Array.from(Array(this.props.rows), () => new Array(this.props.coloums).fill(null)))
     this.props.setStateHistory(Array.from(Array(this.props.rows), () => new Array(this.props.coloums).fill(null)))
   }
+ 
 
 
   componentDidUpdate (prevProps, prevState){
@@ -32,14 +37,19 @@ class Game extends Component {
           (this.props.winnerRatio !== prevProps.winnerRatio)){
 
           this.setState({
-            matrix: Array.from(Array(this.props.rows), () => new Array(this.props.coloums).fill(null)),
             winner: "",
             play: true,
             matMove: 0,
             isXNext: true
           })
 
+          this.props.setStateMatrix(Array.from(Array(this.props.rows), () => new Array(this.props.coloums).fill(null)))
           this.props.setStateHistory(Array.from(Array(this.props.rows), () => new Array(this.props.coloums).fill(null)))
+    }
+
+    if(this.props.matrix !== prevProps.matrix){
+      // console.log("HI GOT UP")
+      // console.log(this.props.matrix, prevProps.matrix)
     }
 
   }
@@ -51,14 +61,15 @@ class Game extends Component {
     
     
 
-    const {matrix, isXNext, winner,
-    play,  stepNumber, matMove} = this.state
+    const { isXNext, winner, play,  stepNumber, matMove} = this.state
 
-    const {rows, coloums, winnerRatio, history, setStateHistory, setStateHistoryPushBack, xColor, oColor, setStateColoum, setStateRow, setStateWinnerRatio, setStateXColor, setStateOColor} = this.props
+    const {rows, coloums, winnerRatio, history, matrix, 
+      checkRow, checkColoum, setStateMatrix, setStateMatrixValue, 
+      setStateHistory, setStateHistoryPushBack, xColor, oColor, setStateColoum, 
+      setStateRow, setStateWinnerRatio, setStateXColor, setStateOColor,  setStateCheckRow, setStateCheckColoum} = this.props
 
-    console.log(history, matrix)
-
-    const horizontalCheck = (rowIndex, colIndex) =>{
+    const horizontalCheck = (matrix, rowIndex, colIndex) =>{
+      
       
       for(let i=0; i<coloums; ++i){
         let check = 0;
@@ -70,6 +81,8 @@ class Game extends Component {
             break;
         }
 
+        console.log("horizontalCheck check", rowIndex, colIndex, check, winnerRatio)
+
         if(check>=winnerRatio)
           return true;
       }
@@ -77,7 +90,7 @@ class Game extends Component {
       return false;
     } 
 
-    const verticalCheck = (rowIndex, colIndex) =>{
+    const verticalCheck = (matrix, rowIndex, colIndex) =>{
       
       for(let i=0; i<rows; ++i){
         let check = 0;
@@ -96,7 +109,7 @@ class Game extends Component {
       return false;
     }
 
-    const diagonalTopToBottomCheck = (rowIndex, colIndex) =>{
+    const diagonalTopToBottomCheck = (matrix, rowIndex, colIndex) =>{
       
 
       // console.log("In check diagonal")
@@ -132,9 +145,9 @@ class Game extends Component {
 
     }
 
-    const checkUp = (rowIndex, colIndex, check) => {
+    const checkUp = (matrix, rowIndex, colIndex, check) => {
 
-      
+      console.log("Aggainnnnnnnnnnnn Seeeeeeeeeeup", matrix, rowIndex, colIndex, matrix[rowIndex][colIndex])
       if(rowIndex<0 || colIndex>=coloums || matrix[rowIndex][colIndex]!==check )
         return 0;
       
@@ -145,8 +158,9 @@ class Game extends Component {
       return x;
     }
 
-    const checkDown = (rowIndex, colIndex, check) => {
+    const checkDown = (matrix, rowIndex, colIndex, check) => {
 
+      console.log("Aggainnnnnnnnnnnn Seeeeeeeeeedown", matrix, rowIndex, colIndex, matrix[rowIndex][colIndex])
       if(rowIndex>=rows || colIndex<0 || matrix[rowIndex][colIndex]!==check )
         return 0;
       
@@ -155,10 +169,9 @@ class Game extends Component {
       return x;
     }
 
-    const diagonalBottomToTopCheck = (rowIndex, colIndex) => {
-
-      let up  = checkUp(rowIndex-1, colIndex+1, matrix[rowIndex][colIndex]);
-      let down = checkDown(rowIndex+1, colIndex-1, matrix[rowIndex][colIndex]);
+    const diagonalBottomToTopCheck = (matrix, rowIndex, colIndex) => {
+      let up  = checkUp(matrix, rowIndex-1, colIndex+1, matrix[rowIndex][colIndex]);
+      let down = checkDown(matrix, rowIndex+1, colIndex-1, matrix[rowIndex][colIndex]);
 
       // console.log("Up", up, "Down", down);
       if(up+down+1 >= winnerRatio)
@@ -169,7 +182,7 @@ class Game extends Component {
 
     const checkWinner = (row, col, diagonalTB, diagonalBT, check) =>{
 
-
+      console.log(row, col, diagonalBT, diagonalTB, check)
       if( row===true || col===true || diagonalTB===true || diagonalBT===true){
         this.setState({
           winner: `Winner is ${check}`,
@@ -179,26 +192,30 @@ class Game extends Component {
 
     }
 
-    const dynamicWinner = (rowIndex, colIndex, check) => {
+    const dynamicWinner = (matrix, rowIndex, colIndex, check) => {
 
       
-      const row = horizontalCheck(rowIndex, colIndex);
-      const col = verticalCheck(rowIndex, colIndex);
-      const diagonalTB = diagonalTopToBottomCheck(rowIndex, colIndex);
-      const diagonalBT = diagonalBottomToTopCheck(rowIndex, colIndex);
+      const row = horizontalCheck(matrix, rowIndex, colIndex);
+      const col = verticalCheck(matrix, rowIndex, colIndex);
+      const diagonalTB = diagonalTopToBottomCheck(matrix, rowIndex, colIndex);
+      const diagonalBT = diagonalBottomToTopCheck(matrix, rowIndex, colIndex);
 
 
       checkWinner(row, col, diagonalTB, diagonalBT, check)
     }
 
 
-    const calculateWinner = (rowIndex, colIndex) => {
-      
+    const calculateWinner = (matrix, rowIndex, colIndex) => {
+
+      console.log("Calculate Winner", matrix, rowIndex, colIndex)
+
+
       let row = false, col = false, diagonal = false;
       const check = matrix[rowIndex][colIndex];
+      console.log("Calculate Matrix", matrix)
 
       if(winnerRatio>1 && winnerRatio<=rows && winnerRatio<=coloums){
-        dynamicWinner(rowIndex, colIndex, check);
+        dynamicWinner(matrix, rowIndex, colIndex, check);
         return;
       }
 
@@ -260,15 +277,31 @@ class Game extends Component {
 
 
     //Adding History to history with shallow copy of matrix
-    const matrixSetup = () =>{
+    const matrixSetup = (matrix) =>{
 
+
+      let check = false;
+      for(let i=0; i<matrix.length; ++i){
+        for(let j=0; j<matrix[i].length; ++j){
+          if(matrix[i][j]){
+            check=true;
+            break;
+          }
+        }
+      }
+
+
+
+      if(!check)
+        return
+      console.log("IN Matrix", matrix)
       const newMatrix = []
       matrix.map( (x) => {
           newMatrix.push(x.slice())
       })
 
       setStateHistoryPushBack(newMatrix)
-    } 
+    }
 
 
 
@@ -301,32 +334,52 @@ class Game extends Component {
 
     const handleClick = (rowIndex, i) =>{
 
-        // if(matMove < history.length){
-        //   while(matMove < history.length){
-        //     history.pop()
-        //   }
+        console.log(`Clicked : ${play} ${winnerRatio}`)
 
-        //   matrixSetup()
-        // }
+        if(matMove < history.length-1){
+          console.log("Length", matMove, history.length)
+          while(matMove < history.length){
+            history.pop()
+          }
+
+          matrixSetup(matrix)
+        }
+
+        const matrixCopy = []
 
         if(play && !matrix[rowIndex][i]){
           if(isXNext){
-            matrix[rowIndex][i]="X"
+            matrix.map( (x) => {
+              matrixCopy.push(x.slice())
+            })
+
+            matrixCopy[rowIndex][i] = "X";
+
+            setStateMatrixValue(matrixCopy)
+            // matrix[rowIndex][i]="X"
             this.setState({
               isXNext: false
             })
           }
             
           else{
-            matrix[rowIndex][i]="O"
+            matrix.map( (x) => {
+              matrixCopy.push(x.slice())
+            })
+
+            matrixCopy[rowIndex][i] = "O";
+
+            setStateMatrixValue(matrixCopy)
+            // matrix[rowIndex][i]="O"
             this.setState({
               isXNext: true
             })
           }
   
-          calculateWinner(rowIndex, i);
+          console.log("MatrixCopy", matrixCopy)
+          calculateWinner(matrixCopy, rowIndex, i);
 
-          matrixSetup()
+          matrixSetup(matrixCopy)
 
           this.setState({
             matMove: matMove + 1,
@@ -339,15 +392,14 @@ class Game extends Component {
           console.log("Predicting at", matMove)
           predictWinner();
         }
-
-
     }
 
-
+    // calculateWinner(matrix, checkRow, checkColoum)
+    console.log("Last", this.props.matrix)
 
     return (
       <div className="game-container">
-
+        <Header winner={""}/>
         <Navigate />
         <div className="game">
           <MiddleDivPanel 
@@ -373,6 +425,7 @@ const mapStateToProps = (state) => {
     oColor: state.game_Class.oColor,
     winnerRatio: state.game_Class.winnerRatio,
     history: state.game_Class.history,
+    matrix: state.game_Class.matrix,
   }
 }
 
@@ -386,6 +439,10 @@ const mapDispatchToProps = (dispatch) => {
       setStateOColor: (x) => dispatch(onChangeOColor(x)),
       setStateHistory:(x) => dispatch(onChangeHistory(x)),
       setStateHistoryPushBack:(x) => dispatch(onChangeHistoryPushBack(x)),
+      setStateMatrix: (x) => dispatch(onChangeMatrix()),
+      setStateMatrixValue: (x) => dispatch(onChangeMatrixValue(x)),
+      setStateCheckColoum: (x) => dispatch(onChangeCheckColoum(x)),
+      setStateCheckRow: (x) => dispatch(onChangeCheckRow(x)),
   }
 }
 
